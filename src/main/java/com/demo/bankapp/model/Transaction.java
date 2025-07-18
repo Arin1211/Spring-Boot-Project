@@ -3,25 +3,26 @@ package com.demo.bankapp.model;
 import java.math.BigDecimal;
 import java.util.Date;
 
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.Id;
-
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.Id;
 import lombok.Data;
+import lombok.NoArgsConstructor;
+import lombok.RequiredArgsConstructor;
 
 @Data
 @Entity
+@NoArgsConstructor
 public class Transaction {
 
-	private @Id @GeneratedValue Long id;
+	@Id @GeneratedValue
+	private Long id;
+
 	private Long userId;
 	private boolean isBought;
 	private String currency;
 	private BigDecimal amount;
 	private Date transactionTime;
-
-	private Transaction() {
-	}
 
 	public Transaction(Long userId, boolean isBought, String currency, BigDecimal amount) {
 		this.userId = userId;
@@ -30,5 +31,4 @@ public class Transaction {
 		this.amount = amount;
 		this.transactionTime = new Date();
 	}
-
 }

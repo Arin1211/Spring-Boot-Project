@@ -5,12 +5,12 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
 import org.mockito.Mockito;
-import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import com.demo.bankapp.exception.BadRequestException;
 import com.demo.bankapp.exception.InsufficientFundsException;
@@ -18,10 +18,13 @@ import com.demo.bankapp.model.Wealth;
 import com.demo.bankapp.repository.WealthRepository;
 import com.demo.bankapp.service.implementation.WealthServiceImpl;
 
-@RunWith(SpringJUnit4ClassRunner.class)
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
+
+@ExtendWith(MockitoExtension.class)
 public class WealthServiceImplTest {
 
-	@MockBean
+	@Mock
 	private WealthRepository repository;
 
 	private WealthServiceImpl service;
@@ -29,9 +32,18 @@ public class WealthServiceImplTest {
 	private Wealth mockedWealth;
 	private Long mockedUserId;
 
-	@Before
+	@BeforeEach
 	public void setUp() {
-		service = new WealthServiceImpl(repository);
+		// Create a fixed currency rates map.
+		Map<String, Double> fixedRates = new HashMap<>();
+		fixedRates.put("USD", 0.5);
+		fixedRates.put("EUR", 0.8);
+		fixedRates.put("TRY", 1.0);
+		fixedRates.put("AUD", 1.1);
+
+		// Instantiate service as a spy and stub getCurrencyRates()
+		service = Mockito.spy(new WealthServiceImpl(repository));
+		Mockito.doReturn(fixedRates).when(service).getCurrencyRates();
 
 		Map<String, BigDecimal> mockedWealthMap = new HashMap<>();
 		mockedWealthMap.put("USD", BigDecimal.valueOf(2500));
@@ -42,54 +54,75 @@ public class WealthServiceImplTest {
 		this.mockedUserId = 5125L;
 		this.mockedWealth = new Wealth(mockedUserId, mockedWealthMap);
 
-		Mockito.when(repository.findById(mockedUserId)).thenReturn(Optional.of(mockedWealth));
+		when(repository.findById(mockedUserId)).thenReturn(Optional.of(mockedWealth));
 	}
 
 	@Test
 	public void newWealthRecord() {
+		// Add assertion or verification
 		service.newWealthRecord(25161L);
+		verify(repository, times(1)).save(any(Wealth.class));
 	}
 
 	@Test
 	public void makeWealthExchange() {
 		service.makeWealthExchange(mockedUserId, "USD", BigDecimal.valueOf(150), true);
 		service.makeWealthExchange(mockedUserId, "USD", BigDecimal.valueOf(250), false);
+
+		// Add verifications
+		verify(repository, times(2)).save(any(Wealth.class));
 	}
-	
-	@Test(expected = InsufficientFundsException.class)
+
+	@Test
 	public void makeWealthExchange_InsufficientFunds_Sell() {
-		service.makeWealthExchange(mockedUserId, "USD", BigDecimal.valueOf(3000), false);
+		assertThrows(InsufficientFundsException.class, () -> {
+			service.makeWealthExchange(mockedUserId, "USD", BigDecimal.valueOf(3000), false);
+		});
 	}
-	
-	@Test(expected = InsufficientFundsException.class)
+
+	@Test
 	public void makeWealthExchange_InsufficientFunds_Buy() {
-		service.makeWealthExchange(mockedUserId, "USD", BigDecimal.valueOf(3000), true);
+		assertThrows(InsufficientFundsException.class, () -> {
+			service.makeWealthExchange(mockedUserId, "USD", BigDecimal.valueOf(3000), true);
+		});
 	}
-	
-	@Test(expected = BadRequestException.class)
+
+	@Test
 	public void makeWealthExchange_InvalidCurrency() {
-		service.makeWealthExchange(mockedUserId, "XSD", BigDecimal.valueOf(250), false);
+		assertThrows(BadRequestException.class, () -> {
+			service.makeWealthExchange(mockedUserId, "XSD", BigDecimal.valueOf(250), false);
+		});
 	}
 
 	@Test
 	public void makeWealthTransaction() {
 		service.makeWealthTransaction(mockedUserId, "EUR", BigDecimal.valueOf(2516), true);
 		service.makeWealthTransaction(mockedUserId, "TRY", BigDecimal.valueOf(1000), false);
+
+		// Add verifications
+		verify(repository, times(2)).save(any(Wealth.class));
 	}
-	
-	@Test(expected = InsufficientFundsException.class)
+
+	@Test
 	public void makeWealthTransaction_InsufficientFunds() {
-		service.makeWealthTransaction(mockedUserId, "TRY", BigDecimal.valueOf(5000), false);
+		assertThrows(InsufficientFundsException.class, () -> {
+			service.makeWealthTransaction(mockedUserId, "TRY", BigDecimal.valueOf(5000), false);
+		});
 	}
-	
-	@Test(expected = BadRequestException.class)
+
+	@Test
 	public void makeWealthTransaction_InvalidCurrency() {
-		service.makeWealthTransaction(mockedUserId, "DTD", BigDecimal.valueOf(250), false);
+		assertThrows(BadRequestException.class, () -> {
+			service.makeWealthTransaction(mockedUserId, "DTD", BigDecimal.valueOf(250), false);
+		});
 	}
 
 	@Test
 	public void findWealth() {
-		service.findWealth(mockedUserId);
-	}
+		Wealth result = service.findWealth(mockedUserId);
 
+		assertNotNull(result);
+		assertEquals(mockedUserId, result.getUserId());
+		verify(repository, times(1)).findById(mockedUserId);
+	}
 }
