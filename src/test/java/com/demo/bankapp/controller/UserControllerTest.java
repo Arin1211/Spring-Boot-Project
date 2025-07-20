@@ -6,20 +6,19 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Pattern;
+import java.util.stream.Stream;
 
-import org.junit.ClassRule;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
-import org.junit.runners.Parameterized.Parameters;
+import com.demo.bankapp.config.JwtTestUtils;
+import com.demo.bankapp.config.TestSecurityConfig;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.Mockito;
 import static org.hamcrest.collection.IsCollectionWithSize.hasSize;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.test.context.junit4.rules.SpringClassRule;
-import org.springframework.test.context.junit4.rules.SpringMethodRule;
+import org.springframework.context.annotation.Import;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.RequestBuilder;
 import org.springframework.test.web.servlet.ResultActions;
@@ -32,33 +31,20 @@ import com.demo.bankapp.service.abstractions.UserService;
 import com.demo.bankapp.service.abstractions.WealthService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-@RunWith(Parameterized.class)
-@WebMvcTest(value = UserController.class, secure = false)
+@Import(TestSecurityConfig.class)
+@WebMvcTest(value = UserController.class)
 public class UserControllerTest {
-	
-	@ClassRule
-	public static final SpringClassRule SPRING_CLASS_RULE = new SpringClassRule();
 
-	@Rule
-	public final SpringMethodRule springMethodRule = new SpringMethodRule();
-	
 	@MockBean
 	private UserService userService;
 
 	@MockBean
 	private WealthService wealthService;
-	
+
 	@Autowired
 	private MockMvc mockMvc;
-	
-	private CreateUserRequest request;
-	
-	public UserControllerTest(CreateUserRequest request) {
-		this.request = request;
-	}
-	
-	@Parameters
-	public static List<CreateUserRequest> data() {
+
+	static Stream<CreateUserRequest> createUserRequestProvider() {
 		CreateUserRequest request1 = new CreateUserRequest();
 		CreateUserRequest request2 = new CreateUserRequest();
 		request2.setUsername("");
@@ -98,47 +84,36 @@ public class UserControllerTest {
 		request12.setUsername("Mert");
 		request12.setPassword("mert123");
 		request12.setTcno("51258693850");
-		
-		List<CreateUserRequest> testCases = new ArrayList<>();
-		testCases.add(request1);
-		testCases.add(request2);
-		testCases.add(request3);
-		testCases.add(request4);
-		testCases.add(request5);
-		testCases.add(request6);
-		testCases.add(request7);
-		testCases.add(request8);
-		testCases.add(request9);
-		testCases.add(request10);
-		testCases.add(request11);
-		testCases.add(request12);
-		
-		return testCases;
+
+		return Stream.of(request1, request2, request3, request4, request5, request6,
+				request7, request8, request9, request10, request11, request12);
 	}
-	
-	@Test
-	public void createUser() throws Exception {
-		
+
+	@ParameterizedTest
+	@MethodSource("createUserRequestProvider")
+	public void createUser(CreateUserRequest request) throws Exception {
+
 		boolean shouldThrowBadRequest = request.getUsername() == null || request.getUsername().equals("") || request.getPassword() == null || request.getPassword().equals("") ||
 				request.getTcno() == null || request.getTcno().length() != 11 || !Pattern.matches("[0-9]+", request.getTcno());
 		boolean shouldThrowBadCredentials = false;
-		
+
 		if (request.getUsername() != null && request.getUsername().equals("exist")) {
 			Mockito.when(userService.isUsernameExist(Mockito.anyString())).thenReturn(Boolean.TRUE);
 			shouldThrowBadCredentials = true;
 		}
-		
+
 		if (request.getTcno() != null && request.getTcno().equals("55555555555")) {
 			Mockito.when(userService.isTcnoExist(Mockito.anyString())).thenReturn(Boolean.TRUE);
 			shouldThrowBadCredentials = true;
 		}
-		
+
 		User mockedUser = new User("Mert6", "12356", "52535128592");
 		Mockito.when(userService.createNewUser(Mockito.any())).thenReturn(mockedUser);
-		
 		String requestAsJson = new ObjectMapper().writeValueAsString(request);
-		RequestBuilder requestBuilder = TestUtils.getPostRequestBuilder("/user/create", requestAsJson);
-		
+		String token = JwtTestUtils.generateTestToken("Mert");
+		RequestBuilder requestBuilder = TestUtils.getPostRequestBuilderWithToken("/user/create", requestAsJson, token);
+
+
 		ResultActions resultActions = mockMvc.perform(requestBuilder);
 		if(shouldThrowBadRequest) {
 			resultActions.andExpect(MockMvcResultMatchers.status().isBadRequest());
@@ -146,26 +121,26 @@ public class UserControllerTest {
 			resultActions.andExpect(MockMvcResultMatchers.status().isUnauthorized());
 		} else {
 			resultActions.andExpect(MockMvcResultMatchers.status().isOk())
-				.andExpect(jsonPath("$.username", equalTo(mockedUser.getUsername())))
-				.andExpect(jsonPath("$.tcno", equalTo(mockedUser.getTcno())));
+					.andExpect(jsonPath("$.username", equalTo(mockedUser.getUsername())))
+					.andExpect(jsonPath("$.tcno", equalTo(mockedUser.getTcno())));
 		}
 	}
-	
+
 	@Test
 	public void findAll() throws Exception {
-		
+
 		List<User> userList = new ArrayList<>();
 		User mockedUser = new User("Mert", "mert123", "51258692052");
 		userList.add(mockedUser);
-		
+
 		Mockito.when(userService.findAll()).thenReturn(userList);
-		
+
 		RequestBuilder requestBuilder = TestUtils.getGetRequestBuilder("/user/find/all");
 		mockMvc.perform(requestBuilder)
-			.andExpect(MockMvcResultMatchers.status().isOk())
-			.andExpect(jsonPath("$.userList", hasSize(1)))
-			.andExpect(jsonPath("$.userList.[0].username", equalTo(mockedUser.getUsername())));
-		
+				.andExpect(MockMvcResultMatchers.status().isOk())
+				.andExpect(jsonPath("$.userList", hasSize(1)))
+				.andExpect(jsonPath("$.userList.[0].username", equalTo(mockedUser.getUsername())));
+
 	}
 
 }

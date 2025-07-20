@@ -1,22 +1,25 @@
 package com.demo.bankapp.model;
 
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.Id;
 
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @Data
 @Entity
+@NoArgsConstructor
+@Table(name = "app_user")
 public class User {
 
-	private @Id @GeneratedValue Long id;
+	@Id @GeneratedValue
+	private Long id;
+
 	private String username;
 	private String password;
 	private String tcno;
-
-	private User() {
-	}
 
 	public User(String username, String password, String tcno) {
 		this.username = username;

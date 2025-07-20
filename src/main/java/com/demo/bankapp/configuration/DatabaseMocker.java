@@ -17,24 +17,26 @@ class DatabaseMocker {
 	@Order(Ordered.HIGHEST_PRECEDENCE)
 	CommandLineRunner initDatabase(UserRepository repository, UserController userController) {
 		return args -> {
-			CreateUserRequest cnuRequest = new CreateUserRequest();
-			cnuRequest.setUsername("Mert");
-			cnuRequest.setPassword("mert123");
-			cnuRequest.setTcno("21412322112");
-
-			CreateUserRequest cnuRequest2 = new CreateUserRequest();
-			cnuRequest2.setUsername("Mert2");
-			cnuRequest2.setPassword("mert1234");
-			cnuRequest2.setTcno("23141232212");
-
-			CreateUserRequest cnuRequest3 = new CreateUserRequest();
-			cnuRequest3.setUsername("Mert3");
-			cnuRequest3.setPassword("mert12345");
-			cnuRequest3.setTcno("23141232213");
-
-			userController.createUser(cnuRequest);
-			userController.createUser(cnuRequest2);
-			userController.createUser(cnuRequest3);
+			createUserIfNotExists(repository, userController, "Mert", "mert123", "21412322112");
+			createUserIfNotExists(repository, userController, "Mert2", "mert1234", "23141232212");
+			createUserIfNotExists(repository, userController, "Mert3", "mert12345", "23141232213");
 		};
+	}
+
+	private void createUserIfNotExists(UserRepository repository, UserController controller, String username, String password, String tcno) {
+		if (!repository.existsByUsername(username)) {
+			CreateUserRequest request = new CreateUserRequest();
+			request.setUsername(username);
+			request.setPassword(password);
+			request.setTcno(tcno);
+
+			try {
+				controller.createUser(request);
+			} catch (Exception e) {
+				System.out.println("Warning: Failed to create user " + username + " – " + e.getMessage());
+			}
+		} else {
+			System.out.println("User already exists: " + username);
+		}
 	}
 }

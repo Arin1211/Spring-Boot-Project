@@ -30,12 +30,6 @@ public class UserController {
 	private final UserService userService;
 	private final WealthService wealthService;
 
-//	@Autowired
-//	public UserController(UserService userService, WealthService wealthService) {
-//		this.userService = userService;
-//		this.wealthService = wealthService;
-//	}
-
 	@GetMapping("/find/all")
 	public FindAllUsersResponse findAll() {
 		List<User> userList = userService.findAll();
@@ -48,12 +42,21 @@ public class UserController {
 	@PostMapping("/create")
 	public CreateUserResponse createUser(@RequestBody CreateUserRequest request) {
 
-		if (request.getUsername() == null || request.getUsername().equals("")) {
-			throw new BadRequestException(Constants.MESSAGE_INVALIDUSERNAME);
+		if (request.getUsername() == null || request.getUsername().trim().isEmpty()) {
+			throw new BadRequestException("Username cannot be empty");
 		}
-		
-		if (request.getPassword() == null || request.getPassword().equals("")) {
-			throw new BadRequestException(Constants.MESSAGE_INVALIDPASSWORD);
+		if (request.getUsername().length() < 3 || request.getUsername().length() > 50) {
+			throw new BadRequestException("Username must be between 3 and 50 characters");
+		}
+		if (!request.getUsername().matches("^[a-zA-Z0-9_]+$")) {
+			throw new BadRequestException("Username can only contain letters, numbers, and underscores");
+		}
+
+		if (request.getPassword() == null || request.getPassword().length() < 8) {
+			throw new BadRequestException("Password must be at least 8 characters long");
+		}
+		if (!request.getPassword().matches("^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d).*$")) {
+			throw new BadRequestException("Password must contain at least one uppercase letter, one lowercase letter, and one digit");
 		}
 
 		if (request.getTcno() == null || request.getTcno().length() != 11 || !Pattern.matches("[0-9]+", request.getTcno())) {

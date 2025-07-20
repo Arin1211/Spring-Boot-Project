@@ -8,19 +8,17 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Stream;
 
-import org.junit.ClassRule;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
-import org.junit.runners.Parameterized.Parameters;
+import com.demo.bankapp.config.JwtTestUtils;
+import com.demo.bankapp.config.TestSecurityConfig;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.test.context.junit4.rules.SpringClassRule;
-import org.springframework.test.context.junit4.rules.SpringMethodRule;
+import org.springframework.context.annotation.Import;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.RequestBuilder;
 import org.springframework.test.web.servlet.ResultActions;
@@ -36,19 +34,13 @@ import com.demo.bankapp.service.abstractions.WealthService;
 import com.demo.bankapp.service.implementation.TransferServiceImpl;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-@RunWith(Parameterized.class)
-@WebMvcTest(value = TransferController.class, secure = false)
+@Import(TestSecurityConfig.class)
+@WebMvcTest(value = TransferController.class)
 public class TransferControllerTest {
-	
-	@ClassRule
-	public static final SpringClassRule SPRING_CLASS_RULE = new SpringClassRule();
 
-	@Rule
-	public final SpringMethodRule springMethodRule = new SpringMethodRule();
-	
 	@MockBean
 	private TransferServiceImpl transferServiceImpl;
-	
+
 	@MockBean
 	private UserService userService;
 
@@ -57,18 +49,11 @@ public class TransferControllerTest {
 
 	@MockBean
 	private WealthService wealthService;
-	
+
 	@Autowired
 	private MockMvc mockMvc;
-	
-	private CreateTransferRequest request;
-	
-	public TransferControllerTest(CreateTransferRequest request) {
-		this.request = request;
-	}
-	
-	@Parameters
-	public static List<CreateTransferRequest> data() {
+
+	static Stream<CreateTransferRequest> createTransferRequestProvider() {
 		CreateTransferRequest request1 = new CreateTransferRequest();
 		CreateTransferRequest request2 = new CreateTransferRequest();
 		request2.setCurrency("");
@@ -122,39 +107,25 @@ public class TransferControllerTest {
 		request14.setSenderUsername("Mert3");
 		request14.setReceiverTcno("31256152521");
 		request14.setAmount(BigDecimal.valueOf(1000));
-		
-		List<CreateTransferRequest> requestList = new ArrayList<>();
-		requestList.add(request1);
-		requestList.add(request2);
-		requestList.add(request3);
-		requestList.add(request4);
-		requestList.add(request5);
-		requestList.add(request6);
-		requestList.add(request7);
-		requestList.add(request8);
-		requestList.add(request9);
-		requestList.add(request10);
-		requestList.add(request11);
-		requestList.add(request12);
-		requestList.add(request13);
-		requestList.add(request14);
-		
-		return requestList;
+
+		return Stream.of(request1, request2, request3, request4, request5, request6,
+				request7, request8, request9, request10, request11, request12, request13, request14);
 	}
-	
-	@Test
-	public void createTransaction() throws Exception {
-		
+
+	@ParameterizedTest
+	@MethodSource("createTransferRequestProvider")
+	public void createTransaction(CreateTransferRequest request) throws Exception {
+
 		boolean shouldThrowBadRequest = request.getCurrency() == null || request.getCurrency().equals("") || request.getSenderUsername() == null || request.getSenderUsername().equals("") ||
-				request.getReceiverTcno() == null || request.getReceiverTcno().equals("") || request.getReceiverTcno().length() != 11 || request.getAmount() == null || 
+				request.getReceiverTcno() == null || request.getReceiverTcno().equals("") || request.getReceiverTcno().length() != 11 || request.getAmount() == null ||
 				request.getAmount().signum() == 0 || request.getAmount().signum() == -1;
-		
+
 		boolean shouldThrowExceededMaxValuePerTransaction = request.getAmount() != null && request.getAmount().compareTo(BigDecimal.valueOf(20000)) == 1; // As long as we know currency is USD.
-		
+
 		Map<String, Double> mockedCurrencyRates = new HashMap<>();
 		mockedCurrencyRates.put("USD", Double.valueOf(0.666666777));
 		mockedCurrencyRates.put("EUR", Double.valueOf(0.1633186347));
-		
+
 		boolean shouldThrowExceededMaxValueForDay = false;
 		List<Transfer> mockedLastDayTransfers = new ArrayList<>();
 		if (request.getCurrency() != null && request.getCurrency().equals("EUR")) {
@@ -164,9 +135,9 @@ public class TransferControllerTest {
 			mockedLastDayTransfers.add(new Transfer(2612L, 318L, "EUR", BigDecimal.valueOf(2500)));
 			shouldThrowExceededMaxValueForDay = true;
 		}
-		
+
 		User mockedUserByUsername = new User("Mert", "mert123", "22512567125");
-		
+
 		User mockedUserByTcno;
 		if (request.getSenderUsername() != null && request.getSenderUsername().equals("Mert3")) {
 			mockedUserByTcno = new User("Mert", "mert123", "22512567125");
@@ -174,18 +145,18 @@ public class TransferControllerTest {
 		} else {
 			mockedUserByTcno = new User("Mert5", "mert1235", "51285625682");
 		}
-		
+
 		Transfer mockedTransfer = new Transfer(mockedUserByUsername.getId(), mockedUserByTcno.getId(), request.getCurrency(), request.getAmount());
-		
+
 		Mockito.when(wealthService.getCurrencyRates()).thenReturn(mockedCurrencyRates);
 		Mockito.when(userService.findByUserName(Mockito.anyString())).thenReturn(mockedUserByUsername);
 		Mockito.when(transferServiceImpl.findAllTransfersFrom24Hours(Mockito.any())).thenReturn(mockedLastDayTransfers);
 		Mockito.when(userService.findByTcno(Mockito.anyString())).thenReturn(mockedUserByTcno);
 		Mockito.when(transferServiceImpl.createNewTransfer(Mockito.any())).thenReturn(mockedTransfer);
-		
+		String token = JwtTestUtils.generateTestToken("Mert");
 		String requestAsJson = new ObjectMapper().writeValueAsString(request);
-		RequestBuilder requestBuilder = TestUtils.getPostRequestBuilder("/transfer/create", requestAsJson);
-		
+		RequestBuilder requestBuilder = TestUtils.getPostRequestBuilderWithToken("/transfer/create", requestAsJson, token);
+
 		ResultActions resultActions = mockMvc.perform(requestBuilder);
 		if(shouldThrowBadRequest) {
 			resultActions.andExpect(MockMvcResultMatchers.status().isBadRequest());
@@ -195,10 +166,10 @@ public class TransferControllerTest {
 			resultActions.andExpect(MockMvcResultMatchers.status().isUnauthorized());
 		} else {
 			resultActions.andExpect(MockMvcResultMatchers.status().isOk())
-			.andExpect(jsonPath("$.transfer.fromUserId", equalTo(mockedTransfer.getFromUserId())))
-			.andExpect(jsonPath("$.transfer.toUserId", equalTo(mockedTransfer.getToUserId())))
-			.andExpect(jsonPath("$.transfer.currency", equalTo(mockedTransfer.getCurrency())))
-			.andExpect(jsonPath("$.transfer.amount", equalTo(mockedTransfer.getAmount().intValue())));
+					.andExpect(jsonPath("$.transfer.fromUserId", equalTo(mockedTransfer.getFromUserId())))
+					.andExpect(jsonPath("$.transfer.toUserId", equalTo(mockedTransfer.getToUserId())))
+					.andExpect(jsonPath("$.transfer.currency", equalTo(mockedTransfer.getCurrency())))
+					.andExpect(jsonPath("$.transfer.amount", equalTo(mockedTransfer.getAmount().intValue())));
 		}
 	}
 

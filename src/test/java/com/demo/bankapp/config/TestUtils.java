@@ -4,23 +4,26 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.RequestBuilder;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
+
 public class TestUtils {
-	
-	public static RequestBuilder getPostRequestBuilder(String url, String requestAsJson) {
+
+	public static RequestBuilder getPostRequestBuilderWithToken(String path, String requestBody, String token) {
 		return MockMvcRequestBuilders
-				.post(url)
-				.accept(MediaType.APPLICATION_JSON)
-				.content(requestAsJson)
+				.post(path)
+				.header("Authorization", "Bearer " + token)
 				.contentType(MediaType.APPLICATION_JSON)
-				.characterEncoding("utf-8");
+				.content(requestBody)
+				.header("Authorization", "Bearer " + token)
+				.with(csrf());
 	}
-	
+
 	public static RequestBuilder getGetRequestBuilder(String url) {
+		String token = JwtTestUtils.generateTestToken("Mert");
 		return MockMvcRequestBuilders
 				.get(url)
-				.accept(MediaType.APPLICATION_JSON)
 				.contentType(MediaType.APPLICATION_JSON)
-				.characterEncoding("utf-8");
+				.header("Authorization", "Bearer " + token);
 	}
 
 }
