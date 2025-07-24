@@ -15,8 +15,8 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class Wealth {
 
-	private @Id
-	@GeneratedValue Long userId;
+	@Id @GeneratedValue
+	private Long userId;
 
 	@ElementCollection
 	private Map<String, BigDecimal> wealthMap;

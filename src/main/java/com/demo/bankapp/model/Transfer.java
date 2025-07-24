@@ -14,13 +14,15 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class Transfer {
 
-	private @Id
-	@GeneratedValue Long id;
+	@Id @GeneratedValue
+	private Long id;
+
 	private Long fromUserId;
 	private Long toUserId;
 	private String currency;
 	private BigDecimal amount;
 	private Date transferTime;
+
 
 	public Transfer(Long fromUserId, Long toUserId, String currency, BigDecimal amount) {
 		this.fromUserId = fromUserId;

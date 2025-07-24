@@ -4,14 +4,10 @@ package com.demo.bankapp.model;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
-import jakarta.persistence.Table;
 import lombok.Data;
-import lombok.NoArgsConstructor;
 
 @Data
 @Entity
-@NoArgsConstructor
-@Table(name = "app_user")
 public class User {
 
 	@Id @GeneratedValue
@@ -20,6 +16,9 @@ public class User {
 	private String username;
 	private String password;
 	private String tcno;
+
+	private User() {
+	}
 
 	public User(String username, String password, String tcno) {
 		this.username = username;

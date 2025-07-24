@@ -8,15 +8,16 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.RequiredArgsConstructor;
 
 @Data
 @Entity
 @NoArgsConstructor
 public class Transaction {
 
-	@Id
-	@GeneratedValue
+	@Id @GeneratedValue
 	private Long id;
+
 	private Long userId;
 	private boolean isBought;
 	private String currency;
@@ -30,5 +31,4 @@ public class Transaction {
 		this.amount = amount;
 		this.transactionTime = new Date();
 	}
-
 }

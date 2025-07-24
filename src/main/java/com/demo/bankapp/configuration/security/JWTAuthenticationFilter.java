@@ -4,10 +4,6 @@ import static com.auth0.jwt.algorithms.Algorithm.HMAC512;
 import static com.demo.bankapp.configuration.security.SecurityConstants.EXPIRATION_TIME;
 import static com.demo.bankapp.configuration.security.SecurityConstants.SECRET;
 
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Date;
-
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -20,6 +16,10 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 import com.auth0.jwt.JWT;
 import com.demo.bankapp.model.User;
 import com.fasterxml.jackson.databind.ObjectMapper;
+
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Date;
 
 public class JWTAuthenticationFilter extends UsernamePasswordAuthenticationFilter {
 	
