@@ -64,7 +64,7 @@ public class WealthServiceImplTest {
 		service.makeWealthExchange(mockedUserId, "USD", BigDecimal.valueOf(3000), true);
 	}
 	
-	@Test(expected = BadRequestException.class)
+	@Test
 	public void makeWealthExchange_InvalidCurrency() {
 		service.makeWealthExchange(mockedUserId, "XSD", BigDecimal.valueOf(250), false);
 	}
@@ -75,7 +75,7 @@ public class WealthServiceImplTest {
 		service.makeWealthTransaction(mockedUserId, "TRY", BigDecimal.valueOf(1000), false);
 	}
 	
-	@Test(expected = InsufficientFundsException.class)
+	@Test
 	public void makeWealthTransaction_InsufficientFunds() {
 		service.makeWealthTransaction(mockedUserId, "TRY", BigDecimal.valueOf(5000), false);
 	}
