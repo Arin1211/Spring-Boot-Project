@@ -1,6 +1,6 @@
 package com.demo.bankapp.configuration.security;
 
-final class SecurityConstants {
+public class SecurityConstants {
 
 	private SecurityConstants() {
 	}

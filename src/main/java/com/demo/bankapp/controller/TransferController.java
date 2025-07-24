@@ -5,7 +5,7 @@ import java.math.RoundingMode;
 import java.util.List;
 import java.util.Map;
 
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -25,18 +25,13 @@ import com.demo.bankapp.service.abstractions.WealthService;
 
 @RestController
 @RequestMapping(value = "/transfer", produces = { MediaType.APPLICATION_JSON_VALUE })
+@RequiredArgsConstructor
 public class TransferController {
 
-	private UserService userService;
-	private WealthService wealthService;
-	private TransferService transferService;
+	private final UserService userService;
+	private final WealthService wealthService;
+	private final TransferService transferService;
 
-	@Autowired
-	public TransferController(UserService userService, WealthService wealthService, TransferService transferService) {
-		this.userService = userService;
-		this.wealthService = wealthService;
-		this.transferService = transferService;
-	}
 
 	@PostMapping("/create")
 	public CreateTransferResponse createTransfer(@RequestBody CreateTransferRequest request) {

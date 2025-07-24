@@ -35,9 +35,9 @@ public class TransactionController {
 	@PostMapping("/create")
 	public CreateTransactionResponse createTransaction(@RequestBody CreateTransactionRequest request) {
 
-		if (request.getUsername() == null || request.getUsername().equals("")) {
+		if (request.getUsername() == null || request.getUsername().trim().isEmpty()) {
 			throw new BadRequestException(Constants.MESSAGE_INVALIDUSERNAME);
-		} else if (request.getCurrency() == null || request.getCurrency().equals("")) {
+		} else if (request.getCurrency() == null || request.getCurrency().trim().isEmpty()) {
 			throw new BadRequestException(Constants.MESSAGE_INVALIDCURRENCY);
 		} else if (request.getAmount() == null || request.getAmount().signum() == 0 || request.getAmount().signum() == -1) {
 			throw new BadRequestException(Constants.MESSAGE_INVALIDAMOUNT);
