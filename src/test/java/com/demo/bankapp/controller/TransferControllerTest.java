@@ -12,6 +12,7 @@ import java.util.stream.Stream;
 
 import com.demo.bankapp.config.JwtTestUtils;
 import com.demo.bankapp.config.TestSecurityConfig;
+import com.demo.bankapp.model.User;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.Mockito;
@@ -26,7 +27,6 @@ import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 
 import com.demo.bankapp.config.TestUtils;
 import com.demo.bankapp.model.Transfer;
-import com.demo.bankapp.model.User;
 import com.demo.bankapp.request.CreateTransferRequest;
 import com.demo.bankapp.service.abstractions.TransactionService;
 import com.demo.bankapp.service.abstractions.UserService;

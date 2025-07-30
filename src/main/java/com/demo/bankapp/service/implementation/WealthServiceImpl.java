@@ -29,22 +29,16 @@ public class WealthServiceImpl implements WealthService {
 
 	@Override
 	public void newWealthRecord(Long userId) {
-
 		Map<String, BigDecimal> wealthMap = new HashMap<>();
 
-		Map<String, Double> currencyMap = getCurrencyRates();
-		// Add null check and fallback
-		if (currencyMap != null) {
-			for (Map.Entry<String, Double> entry : currencyMap.entrySet()) {
-				wealthMap.put(entry.getKey(), BigDecimal.ZERO);
-			}
-		} else {
-			// Fallback: Add some default currencies
-			wealthMap.put("USD", BigDecimal.ZERO);
-			wealthMap.put("EUR", BigDecimal.ZERO);
-			wealthMap.put("GBP", BigDecimal.ZERO);
-		}
-		addInitialBalance(wealthMap);
+		// Initialize default currencies with zero balance
+		wealthMap.put("TRY", BigDecimal.ZERO);
+		wealthMap.put("USD", BigDecimal.ZERO);
+		wealthMap.put("EUR", BigDecimal.ZERO);
+		wealthMap.put("GBP", BigDecimal.ZERO);
+
+		// Add initial balance in TRY (1000)
+		wealthMap.put("TRY", new BigDecimal("1000.00"));
 
 		Wealth userWealth = new Wealth(userId, wealthMap);
 		repository.save(userWealth);

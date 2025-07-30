@@ -3,8 +3,8 @@ package com.demo.bankapp.controller;
 import java.util.List;
 import java.util.regex.Pattern;
 
+import com.demo.bankapp.model.User;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -15,7 +15,6 @@ import org.springframework.web.bind.annotation.RestController;
 import com.demo.bankapp.configuration.Constants;
 import com.demo.bankapp.exception.BadCredentialsException;
 import com.demo.bankapp.exception.BadRequestException;
-import com.demo.bankapp.model.User;
 import com.demo.bankapp.request.CreateUserRequest;
 import com.demo.bankapp.response.CreateUserResponse;
 import com.demo.bankapp.response.FindAllUsersResponse;
@@ -59,8 +58,27 @@ public class UserController {
 			throw new BadRequestException("Password must contain at least one uppercase letter, one lowercase letter, and one digit");
 		}
 
-		if (request.getTcno() == null || request.getTcno().length() != 11 || !Pattern.matches("[0-9]+", request.getTcno())) {
-			throw new BadRequestException(Constants.MESSAGE_INVALIDTCNO);
+		// TC No validation with specific error messages
+		if (request.getTcno() == null) {
+			throw new BadRequestException("TC No cannot be null");
+		}
+		if (request.getTcno().length() != 11) {
+			throw new BadRequestException("TC No must be exactly 11 digits long, current length: " + request.getTcno().length());
+		}
+		if (!request.getTcno().matches("^[0-9]+$")) {
+			throw new BadRequestException("TC No must contain only numbers");
+		}
+		
+		// Validate first digit cannot be 0
+		if (request.getTcno().startsWith("0")) {
+			throw new BadRequestException("TC No cannot start with 0");
+		}
+		
+		// Additional TC No algorithm validation
+		try {
+			validateTCNo(request.getTcno());
+		} catch (Exception e) {
+			throw new BadRequestException("Invalid TC No: " + e.getMessage());
 		}
 
 		boolean isUsernameExist = userService.isUsernameExist(request.getUsername());
@@ -81,5 +99,34 @@ public class UserController {
 		response.setTcno(user.getTcno());
 		return response;
 	}
+
+	private void validateTCNo(String tcno) {
+        // Convert string to array of integers
+        int[] digits = new int[11];
+        for (int i = 0; i < 11; i++) {
+            digits[i] = Character.getNumericValue(tcno.charAt(i));
+        }
+
+        // Rule 1: 10th digit must satisfy algorithm
+        int sum = 0;
+        for (int i = 0; i < 9; i += 2) {
+            sum += digits[i] * 7;
+        }
+        for (int i = 1; i < 9; i += 2) {
+            sum += digits[i] * 9;
+        }
+        if (digits[9] != (sum % 10)) {
+            throw new IllegalArgumentException("10th digit validation failed");
+        }
+
+        // Rule 2: 11th digit must be equal to sum of first 10 digits mod 10
+        sum = 0;
+        for (int i = 0; i < 10; i++) {
+            sum += digits[i];
+        }
+        if (digits[10] != (sum % 10)) {
+            throw new IllegalArgumentException("11th digit validation failed");
+        }
+    }
 
 }

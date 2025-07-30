@@ -17,9 +17,9 @@ class DatabaseMocker {
 	@Order(Ordered.HIGHEST_PRECEDENCE)
 	CommandLineRunner initDatabase(UserRepository repository, UserController userController) {
 		return args -> {
-			createUserIfNotExists(repository, userController, "Mert", "mert123", "21412322112");
-			createUserIfNotExists(repository, userController, "Mert2", "mert1234", "23141232212");
-			createUserIfNotExists(repository, userController, "Mert3", "mert12345", "23141232213");
+			createUserIfNotExists(repository, userController, "Mert", "Mert12345", "11223344550");
+			createUserIfNotExists(repository, userController, "Mert2", "Mert12345", "10000000078");
+			createUserIfNotExists(repository, userController, "Mert3", "Mert12345", "10000000146");
 		};
 	}
 

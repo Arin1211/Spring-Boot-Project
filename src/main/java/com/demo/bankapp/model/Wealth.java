@@ -1,29 +1,42 @@
 package com.demo.bankapp.model;
 
 import java.math.BigDecimal;
+import java.util.HashMap;
 import java.util.Map;
 
-import jakarta.persistence.ElementCollection;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.Id;
+import jakarta.persistence.*;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 @Data
 @Entity
+@Table(name = "wealth", schema = "bankschema")
 @NoArgsConstructor
 public class Wealth {
 
-	private @Id
-	@GeneratedValue Long userId;
+	@Id
+	private Long userId; // Remove @GeneratedValue
 
 	@ElementCollection
-	private Map<String, BigDecimal> wealthMap;
+	@CollectionTable(
+			name = "wealth_map",
+			schema = "bankschema",
+			joinColumns = @JoinColumn(name = "user_id")
+	)
+	@MapKeyColumn(name = "wealth_type")
+	@Column(name = "amount", precision = 19, scale = 2)
+	private Map<String, BigDecimal> wealthMap = new HashMap<>();
 
 	public Wealth(Long userId, Map<String, BigDecimal> wealthMap) {
 		this.userId = userId;
-		this.wealthMap = wealthMap;
+		this.wealthMap = wealthMap != null ? wealthMap : new HashMap<>();
 	}
 
+	public Wealth(Long userId) {
+		this.userId = userId;
+		this.wealthMap = new HashMap<>();
+		this.wealthMap.put("balance", BigDecimal.ZERO);
+		this.wealthMap.put("savings", BigDecimal.ZERO);
+		this.wealthMap.put("investments", BigDecimal.ZERO);
+	}
 }

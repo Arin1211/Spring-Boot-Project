@@ -5,6 +5,7 @@ import java.math.RoundingMode;
 import java.util.List;
 import java.util.Map;
 
+import com.demo.bankapp.model.User;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -16,7 +17,6 @@ import com.demo.bankapp.configuration.Constants;
 import com.demo.bankapp.exception.BadRequestException;
 import com.demo.bankapp.exception.TransactionLimitException;
 import com.demo.bankapp.model.Transfer;
-import com.demo.bankapp.model.User;
 import com.demo.bankapp.request.CreateTransferRequest;
 import com.demo.bankapp.response.CreateTransferResponse;
 import com.demo.bankapp.service.abstractions.TransferService;

@@ -4,6 +4,7 @@ import static java.util.Collections.emptyList;
 
 import java.util.List;
 
+import com.demo.bankapp.model.User;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -12,7 +13,6 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import com.demo.bankapp.exception.UserNotFoundException;
-import com.demo.bankapp.model.User;
 import com.demo.bankapp.repository.UserRepository;
 import com.demo.bankapp.service.abstractions.UserService;
 

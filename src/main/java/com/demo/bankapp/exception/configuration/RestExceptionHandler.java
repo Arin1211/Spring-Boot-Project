@@ -90,7 +90,7 @@ public class RestExceptionHandler extends ResponseEntityExceptionHandler {
 	@ExceptionHandler({ BadCredentialsException.class })
 	public ResponseEntity<Object> handleBadCredentials(
 			final BadCredentialsException ex, final WebRequest request) {
-		final ApiError apiError = new ApiError(HttpStatus.UNAUTHORIZED, ex.getLocalizedMessage(), "error occurred");
+		final ApiError apiError = new ApiError(HttpStatus.CONFLICT, ex.getLocalizedMessage(), "error occurred");
 		return buildResponseEntity(ex, apiError);
 	}
 

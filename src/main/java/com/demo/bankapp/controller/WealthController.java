@@ -1,5 +1,6 @@
 package com.demo.bankapp.controller;
 
+import com.demo.bankapp.model.User;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -9,7 +10,6 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.demo.bankapp.configuration.Constants;
 import com.demo.bankapp.exception.BadRequestException;
-import com.demo.bankapp.model.User;
 import com.demo.bankapp.model.Wealth;
 import com.demo.bankapp.request.RetrieveWealthRequest;
 import com.demo.bankapp.response.RetrieveWealthResponse;

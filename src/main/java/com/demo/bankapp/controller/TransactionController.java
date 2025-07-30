@@ -2,6 +2,7 @@ package com.demo.bankapp.controller;
 
 import java.util.List;
 
+import com.demo.bankapp.model.User;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -13,7 +14,6 @@ import com.demo.bankapp.configuration.Constants;
 import com.demo.bankapp.exception.BadRequestException;
 import com.demo.bankapp.exception.DailyOperationLimitReachedException;
 import com.demo.bankapp.model.Transaction;
-import com.demo.bankapp.model.User;
 import com.demo.bankapp.request.CreateTransactionRequest;
 import com.demo.bankapp.request.FindAllTransactionsByUserRequest;
 import com.demo.bankapp.response.CreateTransactionResponse;
